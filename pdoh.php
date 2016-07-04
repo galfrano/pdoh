@@ -6,17 +6,15 @@ abstract class pdoh{
 
 	protected $dbi, $stmt = [];
 
-	protected static $pdo = [], $dbc = [];
+	protected static $pdo = [];
 
 	function __construct($dbi, $pdo){
-		$this->dbi = $dbi;
-		self::$pdo[$dbi] = $pdo;}
+		key_exists($dbi, self::$pdo) ?: ($pdo instanceof PDO ? self::$pdo[$dbi] = $pdo : self::kill('Second parameter must be PDO (or first parameter must be a previously assigned index).'));
+		$this->dbi = $dbi;}
 
-	protected function pdo(){//calls adapter, checks initialization
-		return self::$pdo[$this->dbi];}
-
-	protected static function kill($stmt, $tokens){//throws exception
-		throw new \Exception($stmt->errorInfo()[2]."\n\n\t".'Query string: '.$stmt->queryString."\n\t".'Tokens: '.str_replace("\n", '', var_export($tokens, 1))."\n\n");}
+	protected static function kill($stmt, $tokens = []){//throws exception
+		$message = $stmt instanceof PDOStatement ? $stmt->errorInfo()[2]."\n\n\t".'Query string: '.$stmt->queryString."\n\t".'Tokens: '.str_replace("\n", '', var_export($tokens, 1)) : $stmt ;
+		throw new \Exception($message."\n\n");}
 
 	function smdbg(){
 		var_export(get_object_vars(self::$pdo[$this->dbi]));
@@ -50,10 +48,12 @@ abstract class pdoh{
 
 //extend abstract
 class a extends pdoh{
-	static function i($dbi, $dbc){
-		return new self($dbi, $dbc);}}
+	static function i($dbi, $pdo = false){
+		return new self($dbi, $pdo);}}
 
-$db = a::i('someIndex', new PDO('mysql:dbname=jml_vm;host=localhost;', 'root', ''));
+$db0 = a::i('someIndex', new PDO('mysql:dbname=jml_vm;host=localhost;', 'root', ''));
+$db = a::i('someIndex');// $db will use the same pdo as $db0
+//$db1 = a::i('someOtherIndex', false)// will throw exception
 
 echo <<<htmlHead
 <!doctype html>
