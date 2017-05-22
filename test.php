@@ -30,3 +30,4 @@ for($heads = [];
 				print '<tr><td>'.implode('</td><td>', $line).'</td></tr>'."\n";}),
 			print'</table>'."\n"); ?>
 </body>
+</html>
